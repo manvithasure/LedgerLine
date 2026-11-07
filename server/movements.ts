@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import type { Request, Response } from "express";
 import type { ResultSetHeader, RowDataPacket } from "mysql2";
-import { pool } from "./db.js";
+import { beginTransaction, pool } from "./db.js";
 import type { AuthUser } from "./auth.js";
 
 type Movement = "DEPOSIT" | "WITHDRAWAL" | "TRANSFER";
@@ -71,7 +71,7 @@ export async function executeMovement(
 
   const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
+    await beginTransaction(connection);
     try {
       await connection.execute(
         `INSERT INTO idempotency_requests
