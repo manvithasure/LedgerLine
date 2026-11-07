@@ -1,4 +1,4 @@
-import mysql from "mysql2/promise";
+import mysql, { type PoolConnection } from "mysql2/promise";
 
 const password = process.env.MYSQL_PASSWORD_BASE64
   ? Buffer.from(process.env.MYSQL_PASSWORD_BASE64, "base64").toString("utf8")
@@ -23,3 +23,16 @@ export const pool = mysql.createPool({
       }
     : undefined
 });
+
+export async function beginTransaction(connection: PoolConnection): Promise<void> {
+  const dialect = process.env.DB_DIALECT ?? "mysql";
+  if (dialect === "tidb") {
+    await connection.query("BEGIN PESSIMISTIC");
+    return;
+  }
+  if (dialect === "mysql") {
+    await connection.beginTransaction();
+    return;
+  }
+  throw new Error(`Unsupported DB_DIALECT: ${dialect}`);
+}
