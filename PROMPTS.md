@@ -56,4 +56,4 @@ Entries were written during development. Each entry links to the separate file c
 - **Produced:** A one-time command to create the first administrator without the public demo seed credentials.
 - **What needed checking:** Public registration must never grant an elevated role, and a deployment with an empty database otherwise has no safe way to sign in as an administrator. A bootstrap command must not overwrite an existing admin or expose the password in Git or terminal output.
 - **What I did instead:** Added a transactional CLI command that only inserts an administrator when none exists, uses bcrypt hashing, reads secrets from temporary environment variables, and documents hidden terminal password input in Render Shell.
-- **Commit:** Pending.
+- **Commit:** [3ef25ea](https://github.com/manvithasure/LedgerLine/commit/3ef25ea) — bootstrap command; [bd624e9](https://github.com/manvithasure/LedgerLine/commit/bd624e9) — secure deployment instructions.
