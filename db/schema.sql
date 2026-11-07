@@ -62,22 +62,3 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
   CONSTRAINT fk_ledger_account FOREIGN KEY (account_id) REFERENCES accounts(id),
   CONSTRAINT fk_ledger_actor FOREIGN KEY (actor_user_id) REFERENCES users(id)
 ) ENGINE=InnoDB;
-
-DROP TRIGGER IF EXISTS ledger_entries_no_update;
-DROP TRIGGER IF EXISTS ledger_entries_no_delete;
-
-DELIMITER //
-CREATE TRIGGER ledger_entries_no_update
-BEFORE UPDATE ON ledger_entries
-FOR EACH ROW
-BEGIN
-  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ledger entries are append-only';
-END//
-
-CREATE TRIGGER ledger_entries_no_delete
-BEFORE DELETE ON ledger_entries
-FOR EACH ROW
-BEGIN
-  SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Ledger entries are append-only';
-END//
-DELIMITER ;
