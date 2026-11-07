@@ -49,3 +49,11 @@ Entries were written during development. Each entry links to the separate file c
 - **What needed checking:** Letting the browser choose an admin/auditor role would allow privilege escalation; creating funded accounts automatically would also exceed the user's chosen onboarding policy.
 - **What I did instead:** Restricted self-registration to `HOLDER`, created no account on signup, and required the administrator to create the account before the new holder can use LedgerLine. Added integration tests for privilege restriction, duplicate email, password hashing, login, and admin account provisioning.
 - **Commit:** [31b8188](https://github.com/manvithasure/LedgerLine/commit/31b8188) — registration endpoint; [cb59546](https://github.com/manvithasure/LedgerLine/commit/cb59546) — integration tests.
+
+## 2026-11-07 — Production first administrator
+
+- **Asked:** Prepare the GitHub project for deployment with Vercel, Render, and a managed MySQL database.
+- **Produced:** A one-time command to create the first administrator without the public demo seed credentials.
+- **What needed checking:** Public registration must never grant an elevated role, and a deployment with an empty database otherwise has no safe way to sign in as an administrator. A bootstrap command must not overwrite an existing admin or expose the password in Git or terminal output.
+- **What I did instead:** Added a transactional CLI command that only inserts an administrator when none exists, uses bcrypt hashing, reads secrets from temporary environment variables, and documents hidden terminal password input in Render Shell.
+- **Commit:** Pending.
