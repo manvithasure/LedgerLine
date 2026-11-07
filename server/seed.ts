@@ -1,6 +1,6 @@
 import "dotenv/config";
 import bcrypt from "bcryptjs";
-import { pool } from "./db.js";
+import { beginTransaction, pool } from "./db.js";
 
 const demoUsers = [
   {
@@ -64,7 +64,7 @@ async function seed(): Promise<void> {
 
     const connection = await pool.getConnection();
     try {
-      await connection.beginTransaction();
+      await beginTransaction(connection);
       const [rows] = await connection.execute<Array<{ balance_cents: string } & import("mysql2").RowDataPacket>>(
         "SELECT balance_cents FROM accounts WHERE id = ? FOR UPDATE",
         [account.id]
