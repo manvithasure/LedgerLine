@@ -101,6 +101,24 @@ You also need a **managed, publicly reachable MySQL 8 database with TLS**. Your 
 4. Create a Vercel project from the same repository using the root directory. Set `VITE_API_BASE_URL` to the Render API's HTTPS origin, for example `https://ledgerline-api.onrender.com`, and deploy. Vite reads this variable at build time.
 5. Set Render's `WEB_ORIGIN` to the exact deployed Vercel origin (such as `https://your-project.vercel.app`), redeploy the API, and test login and all roles on the live site.
 
+### Create the first production administrator
+
+Do not run `npm run seed` against a public database: it installs published demo credentials. Instead, after the schema is installed, open the Render service's **Shell** and run the compiled one-time first-admin command. It only creates an administrator if none exists and never changes an existing user.
+
+Enter values without saving them into the repository. In the Render Shell, use hidden password input:
+
+```bash
+read -r -p "Admin email: " BOOTSTRAP_ADMIN_EMAIL
+read -r -p "Admin display name: " BOOTSTRAP_ADMIN_NAME
+read -r -s -p "Admin password (12–72 bytes): " BOOTSTRAP_ADMIN_PASSWORD
+echo
+export BOOTSTRAP_ADMIN_EMAIL BOOTSTRAP_ADMIN_NAME BOOTSTRAP_ADMIN_PASSWORD
+npm run create-admin
+unset BOOTSTRAP_ADMIN_EMAIL BOOTSTRAP_ADMIN_NAME BOOTSTRAP_ADMIN_PASSWORD
+```
+
+The password is not echoed or stored in source control. Keep it in your password manager. Sign in with this admin and create account-holder users/accounts through the UI. Public registration creates holder logins only; an administrator still needs to assign an account.
+
 Render's free web service may sleep while idle. That can make the first request slow, so a paid always-on service is more appropriate for a responsive demonstration. Free-tier availability and managed MySQL pricing vary by provider and may change.
 
 ## Known limitations
