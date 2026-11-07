@@ -9,6 +9,7 @@
     "build:web": "vite build",
     "start": "node build/server/index.js",
     "seed": "tsx server/seed.ts",
+    "create-admin": "node build/server/create-admin.js",
     "test": "tsx --test server/movements.test.ts"
   },
   "dependencies": {
