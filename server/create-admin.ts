@@ -2,7 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "node:crypto";
 import type { RowDataPacket } from "mysql2";
-import { pool } from "./db.js";
+import { beginTransaction, pool } from "./db.js";
 
 async function createFirstAdmin(): Promise<void> {
   const email = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase() ?? "";
@@ -24,7 +24,7 @@ async function createFirstAdmin(): Promise<void> {
 
   const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
+    await beginTransaction(connection);
     const [existingAdmins] = await connection.execute<RowDataPacket[]>(
       "SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1 FOR UPDATE"
     );
