@@ -6,7 +6,7 @@ import type { AddressInfo } from "node:net";
 import type { RowDataPacket } from "mysql2";
 import { app } from "./app.js";
 import { createToken } from "./auth.js";
-import { pool } from "./db.js";
+import { beginTransaction, pool } from "./db.js";
 
 const userId = randomUUID();
 const otherUserId = randomUUID();
@@ -114,7 +114,7 @@ before(async () => {
   );
   const connection = await pool.getConnection();
   try {
-    await connection.beginTransaction();
+    await beginTransaction(connection);
     await connection.execute(
       `INSERT INTO transfers
        (id, actor_user_id, source_account_id, movement, amount_cents, description)
