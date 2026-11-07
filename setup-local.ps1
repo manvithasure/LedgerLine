@@ -26,6 +26,12 @@ try {
     throw "Could not initialize the database schema."
   }
 
+  $ledgerProtection = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot "db\mysql-ledger-protection.sql")
+  $ledgerProtection | & $mysql --user=root --protocol=TCP --database=ledgerline
+  if ($LASTEXITCODE -ne 0) {
+    throw "Could not install the MySQL ledger protection triggers."
+  }
+
   $envFile = Join-Path $PSScriptRoot ".env"
   if (-not (Test-Path -LiteralPath $envFile)) {
     $envText = Get-Content -Raw -LiteralPath (Join-Path $PSScriptRoot ".env.example")
