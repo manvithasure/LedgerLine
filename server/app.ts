@@ -1,7 +1,6 @@
 import bcrypt from "bcryptjs";
 import cors from "cors";
 import express from "express";
-import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import { randomUUID } from "node:crypto";
 import { existsSync } from "node:fs";
@@ -11,6 +10,7 @@ import type { RowDataPacket } from "mysql2";
 import { createToken, requireAuth, requireRole } from "./auth.js";
 import { pool } from "./db.js";
 import { executeMovement } from "./movements.js";
+import { createRateLimiter, isRateLimitStoreReady, rateLimitBackend } from "./rate-limit.js";
 
 export const app = express();
 const asyncHandler = (
@@ -47,9 +47,31 @@ app.get("/api/health", asyncHandler(async (_req, res) => {
   }
 }));
 
+app.get("/api/live", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
+app.get("/api/ready", asyncHandler(async (_req, res) => {
+  let databaseReady = false;
+  try {
+    await pool.query("SELECT 1");
+    databaseReady = true;
+  } catch (error) {
+    console.error("Database readiness check failed:", error);
+  }
+
+  const rateLimitReady = isRateLimitStoreReady();
+  const ready = databaseReady && rateLimitReady;
+  res.status(ready ? 200 : 503).json({
+    status: ready ? "ok" : "error",
+    database: databaseReady ? "connected" : "unavailable",
+    rateLimitStore: rateLimitReady ? rateLimitBackend : "unavailable"
+  });
+}));
+
 app.post(
   "/api/auth/login",
-  rateLimit({ windowMs: 15 * 60 * 1000, limit: 10, standardHeaders: true, legacyHeaders: false }),
+  createRateLimiter(15 * 60 * 1000, 10),
   asyncHandler(async (req, res) => {
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const password = typeof req.body?.password === "string" ? req.body.password : "";
@@ -81,7 +103,7 @@ app.post(
 
 app.post(
   "/api/auth/register",
-  rateLimit({ windowMs: 15 * 60 * 1000, limit: 5, standardHeaders: true, legacyHeaders: false }),
+  createRateLimiter(15 * 60 * 1000, 5),
   asyncHandler(async (req, res) => {
     const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : "";
     const displayName = typeof req.body?.displayName === "string" ? req.body.displayName.trim() : "";

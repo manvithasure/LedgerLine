@@ -5,7 +5,7 @@ services:
     plan: free
     buildCommand: npm ci && npm run build
     startCommand: npm start
-    healthCheckPath: /api/health
+    healthCheckPath: /api/ready
     envVars:
       - key: NODE_VERSION
         value: 22
@@ -30,4 +30,6 @@ services:
       - key: MYSQL_SSL_CA_BASE64
         sync: false
       - key: WEB_ORIGIN
+        sync: false
+      - key: REDIS_URL
         sync: false

@@ -168,6 +168,20 @@ test("concurrent withdrawals cannot spend the same balance twice", async () => {
   assert.equal(Number(entries.find((entry) => entry.entry_type === "REFUSED")?.count), 1);
 });
 
+test("liveness and readiness endpoints report service dependencies", async () => {
+  const live = await fetch(`${baseUrl}/api/live`);
+  assert.equal(live.status, 200);
+  assert.deepEqual(await live.json(), { status: "ok" });
+
+  const ready = await fetch(`${baseUrl}/api/ready`);
+  assert.equal(ready.status, 200);
+  assert.deepEqual(await ready.json(), {
+    status: "ok",
+    database: "connected",
+    rateLimitStore: "memory"
+  });
+});
+
 test("same idempotency key and payload transfers only once", async () => {
   const [beforeRows] = await pool.execute<RowDataPacket[]>(
     "SELECT balance_cents FROM accounts WHERE id IN (?, ?) ORDER BY id",
