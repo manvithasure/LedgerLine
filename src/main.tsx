@@ -43,7 +43,7 @@ function App() {
   const [token, setToken] = useState(() => localStorage.getItem("ledgerline-token") ?? "");
   const [user, setUser] = useState<User | null>(null);
   const [authMode, setAuthMode] = useState<"login" | "register">("login");
-  const [loginEmail, setLoginEmail] = useState("holder@ledgerline.local");
+  const [loginEmail, setLoginEmail] = useState("");
   const [authNotice, setAuthNotice] = useState("");
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [recipients, setRecipients] = useState<Account[]>([]);
@@ -285,7 +285,7 @@ function App() {
           <form onSubmit={authMode === "login" ? signIn : register} className="form-stack">
             {authMode === "register" && <label>Full name<input name="displayName" type="text" maxLength={120} autoComplete="name" required /></label>}
             <label>Email address<input name="email" type="email" maxLength={254} autoComplete="email" value={loginEmail} onChange={(event) => setLoginEmail(event.target.value)} required /></label>
-            <label>Password<input name="password" type="password" minLength={authMode === "register" ? 12 : undefined} maxLength={72} autoComplete={authMode === "login" ? "current-password" : "new-password"} defaultValue={authMode === "login" ? "HolderPass123!" : ""} required /></label>
+            <label>Password<input name="password" type="password" minLength={authMode === "register" ? 12 : undefined} maxLength={72} autoComplete={authMode === "login" ? "current-password" : "new-password"} required /></label>
             {error && <div className="notice error">{error}</div>}
             <button className="button primary wide" disabled={loading}>{loading ? (authMode === "login" ? "Signing in..." : "Creating account...") : (authMode === "login" ? "Sign in" : "Register")} <span>→</span></button>
           </form>
@@ -295,7 +295,6 @@ function App() {
               {authMode === "login" ? "Create an account" : "Sign in"}
             </button>
           </div>
-          {authMode === "login" && <div className="demo-hint">Demo account · holder@ledgerline.local · HolderPass123!</div>}
         </section>
         <div className="login-footer">Built for money that always adds up.</div>
       </main>
