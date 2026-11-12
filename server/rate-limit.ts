@@ -1,3 +1,4 @@
+
 import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { createClient } from "redis";
@@ -9,7 +10,10 @@ if (process.env.NODE_ENV === "production" && !redisUrl) {
 }
 
 export const rateLimitBackend = redisUrl ? "redis" : "memory";
-const redisClient = redisUrl ? createClient({ url: redisUrl }) : undefined;
+
+const redisClient = redisUrl
+  ? createClient({ url: redisUrl })
+  : undefined;
 
 redisClient?.on("error", () => {
   console.error("Redis connection error.");
@@ -19,10 +23,16 @@ export async function connectRateLimitStore(): Promise<void> {
   if (redisClient && !redisClient.isOpen) {
     await redisClient.connect();
   }
+
+  if (redisClient && !redisClient.isReady) {
+    throw new Error("Redis is not ready.");
+  }
 }
 
 export function isRateLimitStoreReady(): boolean {
-  return redisClient ? redisClient.isReady : process.env.NODE_ENV !== "production";
+  return redisClient
+    ? redisClient.isReady
+    : process.env.NODE_ENV !== "production";
 }
 
 export async function closeRateLimitStore(): Promise<void> {
@@ -39,7 +49,8 @@ export function createRateLimiter(windowMs: number, limit: number) {
     legacyHeaders: false,
     store: redisClient
       ? new RedisStore({
-          sendCommand: (...args: string[]) => redisClient.sendCommand(args)
+          sendCommand: (...args: string[]) =>
+            redisClient.sendCommand(args)
         })
       : undefined
   });
