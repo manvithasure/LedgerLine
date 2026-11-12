@@ -16,6 +16,27 @@ type Entry = {
 type UserOption = { id: string; email: string; displayName: string; role: User["role"] };
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const AUTH_REQUEST_TIMEOUT_MS = 15_000;
+
+async function authRequest(path: string, body: Record<string, string>): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), AUTH_REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(`${API_BASE_URL}/api/auth/${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error("The server is taking too long to respond. Please try again in a moment.");
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeout);
+  }
+}
 
 function money(cents: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -110,10 +131,9 @@ function App() {
     setLoading(true);
     const form = new FormData(event.currentTarget);
     try {
-      const result = await fetch(`${API_BASE_URL}/api/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: form.get("email"), password: form.get("password") })
+      const result = await authRequest("login", {
+        email: String(form.get("email") ?? ""),
+        password: String(form.get("password") ?? "")
       });
       const body = await result.json();
       if (!result.ok) throw new Error(body.error ?? "Sign in failed.");
@@ -134,14 +154,10 @@ function App() {
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email")).trim().toLowerCase();
     try {
-      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          displayName: form.get("displayName"),
-          password: form.get("password")
-        })
+      const response = await authRequest("register", {
+        email,
+        displayName: String(form.get("displayName") ?? ""),
+        password: String(form.get("password") ?? "")
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error ?? "Registration failed.");
